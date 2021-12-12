@@ -54,7 +54,7 @@ namespace NetworkInfomation
             var groups = firstDig
                 .Select((x, index) =>
                 {
-                    var t = int.Parse($"{x}{ConvertToRadit(CodeCharToDec(code[index + 1]), 6)}").ToString();
+                    var t = int.Parse($"{x}{CodeCharToDec(code[index + 1])}").ToString();
                     return t;
                 }).ToArray();
 
@@ -106,9 +106,7 @@ namespace NetworkInfomation
 
             // Get last two dig for each group, convert them to code char and concat to a string.
             var digList = ipGroupsQuery.Select(x =>
-                    DecToCodeChar(ConvertToDec(
-                        int.Parse(x[1..]), 6))
-                    );
+                    DecToCodeChar(int.Parse(x[1..])));
 
             builder.Append(string.Concat(digList));
 
@@ -116,17 +114,44 @@ namespace NetworkInfomation
 
             var t = int.Parse(portStr[^2..]);
 
-            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[..2]), 6)));
-            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[^2..]), 6)));
+            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[..2]), 7)));
+            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[^2..]), 7)));
 
             return builder.ToString();
         }
 
         private static int CodeCharToDec(char codeChar)
-            => codeChar - (codeChar > 0x39 ? 0x41 : 0x30);
+        {
+            if (codeChar > '9')
+            {
+                if (codeChar > 'a')
+                    codeChar -= (char)61;
+                else
+                    codeChar -= (char)55;
+            }
+            else
+            {
+                codeChar -= '0';
+            }
 
+            return codeChar;
+        }
         private static char DecToCodeChar(int number)
-            => (char)(number + (number > 0x09 ? 0x37 : 0x30));
+        {
+            if (number > 9)
+            {
+                if (number > 36)
+                    number += 61;
+                else
+                    number += 55;
+            }
+            else
+            {
+                number += '0';
+            }
+
+            return (char)number;
+        }
 
 
         /// <summary>
@@ -139,9 +164,9 @@ namespace NetworkInfomation
         {
             var result = 0;
 
-            for (var i = 0; number != 0; number /= targetRadix, ++i)
+            for (var i = 1; number != 0; number /= targetRadix, i *= 10)
             {
-                result += 10 * i * (number % targetRadix);
+                result += number % targetRadix * i;
             }
 
             return result;

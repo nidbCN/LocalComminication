@@ -1,6 +1,6 @@
 ﻿using NetworkInfomation;
 
-var obj = new NetCode("192.168.5.3",32531);
+var obj = new NetCode("172.16.20.5",32131);
 var code = obj.Encode();
 Console.WriteLine(code);
 
