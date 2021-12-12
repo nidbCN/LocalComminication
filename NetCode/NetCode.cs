@@ -1,7 +1,7 @@
-﻿using NetCode.Exceptions;
+﻿using NetworkInfomation.Exceptions;
 using System.Text;
 
-namespace NetCode
+namespace NetworkInfomation
 {
     public class NetCode
     {
@@ -13,20 +13,21 @@ namespace NetCode
          * 
          */
 
-        public string IpAddress { get; set; }
-        public ushort Port { get; set; }
+        public string IpAddress { get; private set; }
+        public ushort Port { get; private set; }
 
         public NetCode(string ip, ushort port)
         {
             (IpAddress, Port) = (ip, port);
         }
 
-        public NetCode(string code)
+        public static NetCode Decode(string code)
         {
-            (IpAddress, Port) = ParseCode(code);
+            var (ip, port) = ParseCode(code);
+            return new NetCode(ip, port);
         }
 
-        private (string, ushort) ParseCode(string code)
+        private static (string, ushort) ParseCode(string code)
         {
             if (code is null)
                 throw new ArgumentNullException(nameof(code));
@@ -35,7 +36,7 @@ namespace NetCode
 
             if (code.Length == 5)
             {
-                var netTypeNum = GetCodeCharValue(code[2]);
+                var netTypeNum = CodeCharToDec(code[2]);
                 builder.Append(netTypeNum > 16 ? $"172.{netTypeNum - 16}." : "192.168.");
             }
             else if (code.Length == 6)
@@ -47,43 +48,121 @@ namespace NetCode
                 throw new InvaildCodeException(code);
             }
 
-            var groups = ConvertToByBase(GetCodeCharValue(code[0]), 3)
+            // Get first dig for each group, and append others digs
+            var firstDig = ConvertToRadit(CodeCharToDec(code[0]), 3).ToString("D3");
+
+            var groups = firstDig
                 .Select((x, index) =>
-                    $"{x}{ConvertToByBase(GetCodeCharValue(code[index]), 5)}"
-                ).ToArray();
+                {
+                    var t = int.Parse($"{x}{ConvertToRadit(CodeCharToDec(code[index + 1]), 6)}").ToString();
+                    return t;
+                }).ToArray();
 
             builder.Append(string.Join<string>('.', groups));
 
             var port = string.Concat(code[..2]
                 .Select(x =>
-                    ConvertToByBase(GetCodeCharValue(x), 6)
+                    ConvertToRadit(CodeCharToDec(x), 6)
                 ).ToArray());
 
             return (builder.ToString(), (ushort)(30000 + int.Parse(port)));
         }
 
-        private byte GetCodeCharValue(char codeChar)
+        public string Encode()
         {
-            var codeCharDecoded = (byte)(int)(codeChar);
-            return codeCharDecoded > 0x30 ? (byte)(codeCharDecoded - 55) : codeCharDecoded;
-        }
+            var ipGroups = IpAddress.Split('.');
+            var ipGroupsQuery = ipGroups.Select(x => x.PadLeft(3, '0')).Skip(1);
 
-        private string ConvertToByBase(byte number, byte baseNum)
-        {
-            var builder = new StringBuilder(4);
+            var builder = new StringBuilder(8);
 
-            while (number != 0)
+            if (ipGroups[0] == "10")
             {
-                builder.Append(number % baseNum);
-                number /= baseNum;
+                // Get first for each dig, and convert into 3-base number.
+                var firstDig = DecToCodeChar(ConvertToDec(
+                     int.Parse(string.Concat(
+                         ipGroupsQuery.Select(x => x[0]))
+                     ), 3));
+
+                builder.Append(firstDig);
+            }
+            else if (ipGroups[0] == "172")
+            {
+                // Get first for each dig, and convert into 3-base number.
+                builder.Append(DecToCodeChar(ConvertToDec(
+                     int.Parse(string.Concat(
+                         ipGroupsQuery.Select(x => x[0]))
+                     ) + 16, 3)));
+            }
+            else if (ipGroups[0] == "192")
+            {
+                ipGroupsQuery = ipGroupsQuery.Skip(1);
+
+                // Get first for each dig, and convert into 3-base number.
+                builder.Append(DecToCodeChar(ConvertToDec(
+                     int.Parse(string.Concat(
+                         ipGroupsQuery.Select(x => x[0]))
+                     ), 3)));
             }
 
-            for (var i = builder.Length; builder[i] != '0'; i--)
-            {
-                builder.Remove(i, 1);
-            }
+            // Get last two dig for each group, convert them to code char and concat to a string.
+            var digList = ipGroupsQuery.Select(x =>
+                    DecToCodeChar(ConvertToDec(
+                        int.Parse(x[1..]), 6))
+                    );
+
+            builder.Append(string.Concat(digList));
+
+            var portStr = (Port - 30000).ToString("D4");
+
+            var t = int.Parse(portStr[^2..]);
+
+            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[..2]), 6)));
+            builder.Append(DecToCodeChar(ConvertToDec(int.Parse(portStr[^2..]), 6)));
 
             return builder.ToString();
+        }
+
+        private static int CodeCharToDec(char codeChar)
+            => codeChar - (codeChar > 0x39 ? 0x41 : 0x30);
+
+        private static char DecToCodeChar(int number)
+            => (char)(number + (number > 0x09 ? 0x37 : 0x30));
+
+
+        /// <summary>
+        /// 将十进制转化为特定目标进制
+        /// </summary>
+        /// <param name="number">十进制数</param>
+        /// <param name="targetRadix">目标进制</param>
+        /// <returns></returns>
+        private static int ConvertToRadit(int number, byte targetRadix)
+        {
+            var result = 0;
+
+            for (var i = 0; number != 0; number /= targetRadix, ++i)
+            {
+                result += 10 * i * (number % targetRadix);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 特定进制转换为十进制
+        /// </summary>
+        /// <param name="number">指定进制数字</param>
+        /// <param name="sourceRadix">指定进制</param>
+        /// <returns></returns>
+        private static int ConvertToDec(int number, byte sourceRadix)
+        {
+            var result = 0;
+
+            for (var i = 1; number != 0; number /= 10, i *= sourceRadix)
+            {
+                result += number % 10 * i;
+            }
+
+            return result;
         }
     }
 }

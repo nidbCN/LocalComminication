@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCode", "NetCode\NetCode.csproj", "{14CF3C9D-778F-49E5-BCC0-E75597871FCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetworkInfomation", "NetCode\NetworkInfomation.csproj", "{14CF3C9D-778F-49E5-BCC0-E75597871FCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
