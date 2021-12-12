@@ -10,7 +10,6 @@ namespace NetworkInfomation
          * Use "NetCode" to record private IP address and ports(30000 to 36666).
          * NetCode contains five or six characters, the last 2 characters record port.
          * Six characters code means A-class private address, and five means B or C-class.
-         * 
          */
 
         public string IpAddress { get; private set; }
@@ -27,6 +26,13 @@ namespace NetworkInfomation
             return new NetCode(ip, port);
         }
 
+        /// <summary>
+        /// 解码为IP和端口
+        /// </summary>
+        /// <param name="code">NET码</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvaildCodeException"></exception>
         private static (string, ushort) ParseCode(string code)
         {
             if (code is null)
@@ -34,40 +40,57 @@ namespace NetworkInfomation
 
             var builder = new StringBuilder(16);
 
-            if (code.Length == 5)
+            var firstDigInDec = CodeCharToDec(code[0]);
+            var digToParse = 3;
+            var offset = 1;
+
+            if (code.Length == 6)
             {
-                var netTypeNum = CodeCharToDec(code[2]);
-                builder.Append(netTypeNum > 16 ? $"172.{netTypeNum - 16}." : "192.168.");
+                var netTypeNum = CodeCharToDec(code[0]);
+
+                if (firstDigInDec > 32)
+                {
+                    builder.Append($"172.{CodeCharToDec(code[1])}.");
+                    firstDigInDec -= 32;
+                    digToParse = 2;
+                    offset = 2;
+                }
+                else
+                {
+                    builder.Append("10.");
+                }
+
             }
-            else if (code.Length == 6)
+            else if (code.Length == 5)
             {
-                builder.Append("10.");
+                builder.Append("192.168.");
+                digToParse = 2;
             }
             else
             {
                 throw new InvaildCodeException(code);
             }
 
-            // Get first dig for each group, and append others digs
-            var firstDig = ConvertToRadit(CodeCharToDec(code[0]), 3).ToString("D3");
+            // Get first dig for each group, and append others digs.
+            var firstDig = ConvertToRadit(firstDigInDec, 3).ToString($"D{digToParse}");
 
             var groups = firstDig
-                .Select((x, index) =>
-                {
-                    var t = int.Parse($"{x}{CodeCharToDec(code[index + 1])}").ToString();
-                    return t;
-                }).ToArray();
+                .Select((x, index) => int.Parse($"{x}{CodeCharToDec(code[index + offset])}").ToString()).ToArray();
 
             builder.Append(string.Join<string>('.', groups));
 
-            var port = string.Concat(code[..2]
+            var port = string.Concat(code[^2..]
                 .Select(x =>
-                    ConvertToRadit(CodeCharToDec(x), 6)
+                    ConvertToRadit(CodeCharToDec(x), 7)
                 ).ToArray());
 
             return (builder.ToString(), (ushort)(30000 + int.Parse(port)));
         }
 
+        /// <summary>
+        /// 编码
+        /// </summary>
+        /// <returns></returns>
         public string Encode()
         {
             var ipGroups = IpAddress.Split('.');
@@ -87,11 +110,14 @@ namespace NetworkInfomation
             }
             else if (ipGroups[0] == "172")
             {
+                ipGroupsQuery = ipGroupsQuery.Skip(1);
+
                 // Get first for each dig, and convert into 3-base number.
                 builder.Append(DecToCodeChar(ConvertToDec(
                      int.Parse(string.Concat(
                          ipGroupsQuery.Select(x => x[0]))
-                     ) + 16, 3)));
+                     ), 3) + 32));
+                builder.Append(DecToCodeChar(int.Parse(ipGroups[1])));
             }
             else if (ipGroups[0] == "192")
             {
