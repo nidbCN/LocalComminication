@@ -148,32 +148,36 @@ namespace NetworkInfomation
 
         private static int CodeCharToDec(char codeChar)
         {
+            return codeChar - 33;
+
             if (codeChar > '9')
             {
-                if (codeChar > 'a')
+                if (codeChar >= 'a')
                     codeChar -= (char)61;
                 else
                     codeChar -= (char)55;
             }
             else
             {
-                codeChar -= '0';
+                codeChar -= (char)48;
             }
 
             return codeChar;
         }
         private static char DecToCodeChar(int number)
         {
+            return (char)(number + 33);
+
             if (number > 9)
             {
-                if (number > 36)
+                if (number >= 36)
                     number += 61;
                 else
                     number += 55;
             }
             else
             {
-                number += '0';
+                number += 48;
             }
 
             return (char)number;

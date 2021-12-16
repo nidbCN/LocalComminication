@@ -1,7 +1,9 @@
 ﻿using NetworkInfomation;
 
-var obj = new NetCode("192.168.20.246",36666);
-var code = obj.Encode();
+//var obj = new NetCode("10.101.199.299",34251);
+//var code = obj.Encode();
+
+var code = "E1  Ua";
 Console.WriteLine(code);
 
 var dec = NetCode.Decode(code);

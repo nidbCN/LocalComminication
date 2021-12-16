@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetworkInfomation", "NetCod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Cli", "Client\Client.Cli\Client.Cli.csproj", "{01A700F2-6926-459E-9023-42036212A682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFC2B07A-ECCE-44CF-A085-7F5E457A1F4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01A700F2-6926-459E-9023-42036212A682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A700F2-6926-459E-9023-42036212A682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A700F2-6926-459E-9023-42036212A682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A700F2-6926-459E-9023-42036212A682}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
